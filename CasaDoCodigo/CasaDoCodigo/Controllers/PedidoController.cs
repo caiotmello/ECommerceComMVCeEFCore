@@ -1,6 +1,8 @@
 ﻿using CasaDoCodigo.Models;
+using CasaDoCodigo.Models.ViewModels;
 using CasaDoCodigo.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 
 namespace CasaDoCodigo.Controllers
 {
@@ -8,12 +10,15 @@ namespace CasaDoCodigo.Controllers
     {
         private readonly IProdutoRepository _produtoRepository;
         private readonly IPedidoRepository _pedidoRepository;
+        private readonly IItemPedidoRepository _itemPedidoRepository;
 
         public PedidoController(IProdutoRepository produtoRepository,
-            IPedidoRepository pedidoRepository)
+            IPedidoRepository pedidoRepository,
+            IItemPedidoRepository itemPedidoRepository)
         {
             this._produtoRepository = produtoRepository;
             this._pedidoRepository = pedidoRepository;
+            this._itemPedidoRepository = itemPedidoRepository;
         }
 
         public  IActionResult Carrossel()
@@ -28,19 +33,39 @@ namespace CasaDoCodigo.Controllers
                 _pedidoRepository.AddItem(codigo);
             }
 
-            Pedido pedido = _pedidoRepository.GetPedido();
-            return View(pedido.Itens);
+            List<ItemPedido> itens = _pedidoRepository.GetPedido().Itens;
+            CarrinhoViewModel carrinhoViewModel = new CarrinhoViewModel(itens);
+            return View(carrinhoViewModel);
         }
 
         public IActionResult Cadastro()
         {
-            return View();
+            var pedido = _pedidoRepository.GetPedido();
+
+            if (pedido == null)
+            {
+                return RedirectToAction("Carrossel");
+            }
+            return View(pedido.Cadastro);
         }
 
-        public IActionResult Resumo()
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Resumo(Cadastro cadastro)
         {
-            Pedido pedido = _pedidoRepository.GetPedido();
-            return View(pedido);
+            if(ModelState.IsValid)
+            {
+                return View(_pedidoRepository.UpdateCadastro(cadastro));
+            }
+
+            return RedirectToAction("Cadastro");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public UpdateQuantidadeRespoonse UpdateQuantidade([FromBody]ItemPedido itemPedido)
+        {
+            return _pedidoRepository.UpdateQuantidade(itemPedido);
         }
     }
 }

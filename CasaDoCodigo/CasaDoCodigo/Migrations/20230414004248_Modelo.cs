@@ -7,12 +7,25 @@ namespace CasaDoCodigo.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "Pedido",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Pedido", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Cadastro",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Nome = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PedidoId = table.Column<int>(type: "int", nullable: false),
+                    Nome = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Telefone = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Endereco = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -25,23 +38,10 @@ namespace CasaDoCodigo.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Cadastro", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Pedido",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CadastroId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Pedido", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Pedido_Cadastro_CadastroId",
-                        column: x => x.CadastroId,
-                        principalTable: "Cadastro",
+                        name: "FK_Cadastro_Pedido_PedidoId",
+                        column: x => x.PedidoId,
+                        principalTable: "Pedido",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -75,6 +75,12 @@ namespace CasaDoCodigo.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Cadastro_PedidoId",
+                table: "Cadastro",
+                column: "PedidoId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ItemPedido_PedidoId",
                 table: "ItemPedido",
                 column: "PedidoId");
@@ -83,23 +89,18 @@ namespace CasaDoCodigo.Migrations
                 name: "IX_ItemPedido_ProdutoId",
                 table: "ItemPedido",
                 column: "ProdutoId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Pedido_CadastroId",
-                table: "Pedido",
-                column: "CadastroId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "Cadastro");
+
+            migrationBuilder.DropTable(
                 name: "ItemPedido");
 
             migrationBuilder.DropTable(
                 name: "Pedido");
-
-            migrationBuilder.DropTable(
-                name: "Cadastro");
         }
     }
 }
